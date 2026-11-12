@@ -1,0 +1,21 @@
+# Frontend (Angular)
+node_modules/
+dist/
+.angular/
+
+# Backend (Python / Flask)
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+
+# Variables de entorno y secretos
+.env
+.env.*
+
+# Sistema y editores
+.DS_Store
+.vscode/
+.idea/
