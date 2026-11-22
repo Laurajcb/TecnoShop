@@ -1,16 +1,9 @@
-import {
-  HttpErrorResponse,
-  HttpEvent,
-  HttpInterceptorFn,
-  HttpParams,
-  HttpResponse,
-} from '@angular/common/http';
-import { Observable, delay, mergeMap, of, throwError, timer } from 'rxjs';
+import { HttpInterceptorFn, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Articulo, ArticuloDetalle } from '../models/articulo';
 import { ARTICULOS_PRUEBA } from './articulos-prueba';
-
-const LATENCIA_MS = 200;
+import { manejarAuthPrueba } from './auth-prueba';
+import { responder } from './respuesta-prueba';
 
 /**
  * Simula los endpoints de la API que el backend todavía no tiene (diseño.md §6).
@@ -35,7 +28,7 @@ export const datosPruebaInterceptor: HttpInterceptorFn = (req, next) => {
       : responder(404, { error: 'NO_ENCONTRADO', mensaje: 'El artículo no existe' });
   }
 
-  return next(req);
+  return manejarAuthPrueba(req, ruta) ?? next(req);
 };
 
 /** Misma lógica que debe aplicar GET /api/articulos (R02, R03). */
@@ -57,13 +50,4 @@ export function filtrarArticulos(articulos: ArticuloDetalle[], params: HttpParam
 
 function numero(valor: string | null): number | undefined {
   return valor === null || valor === '' ? undefined : Number(valor);
-}
-
-export function responder(status: number, cuerpo: unknown): Observable<HttpEvent<unknown>> {
-  if (status >= 400) {
-    return timer(LATENCIA_MS).pipe(
-      mergeMap(() => throwError(() => new HttpErrorResponse({ status, error: cuerpo }))),
-    );
-  }
-  return of(new HttpResponse({ status, body: cuerpo })).pipe(delay(LATENCIA_MS));
 }

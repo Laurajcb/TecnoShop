@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { sesionGuard } from './core/guards/sesion.guard';
 
 // Vistas del catálogo TecnoShop. Cada componente está vacío por ahora;
 // su lógica se implementa en las tareas indicadas (ver docs del plan).
@@ -32,6 +33,7 @@ export const routes: Routes = [
   // T46 · R06: carrito de compras
   {
     path: 'carrito',
+    canActivate: [sesionGuard],
     title: 'Carrito · TecnoShop',
     loadComponent: () => import('./pages/carrito/carrito').then((m) => m.Carrito),
   },
