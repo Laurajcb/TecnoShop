@@ -1,0 +1,108 @@
+/* Estilos compartidos por los formularios de registro e inicio de sesión. */
+.formulario {
+  max-width: 420px;
+  margin: 1rem auto;
+  padding: 1.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--fondo);
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin: 0.75rem 0 0.3rem;
+  font-weight: 600;
+}
+
+input {
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+input:focus-visible,
+.boton:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.error-campo {
+  margin: 0.3rem 0 0;
+  color: var(--error);
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  color: var(--error);
+}
+
+.boton {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primario);
+  color: var(--sobre-primario);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.nota,
+.alterno {
+  color: var(--texto-suave);
+}
+
+.alterno {
+  margin: 1rem 0 0;
+  text-align: center;
+}
+
+.alterno a {
+  color: var(--acento);
+}
+
+.confirmacion {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border: 1px solid var(--exito);
+  border-radius: 6px;
+}
+
+.confirmacion p {
+  margin: 0 0 0.5rem;
+}
+
+.confirmacion strong {
+  color: var(--exito);
+}

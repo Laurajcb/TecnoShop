@@ -43,6 +43,15 @@ La URL del backend está en `src/environments/`:
 
 Todas las llamadas HTTP pasan por el servicio `Api` (`src/app/core/services/api.ts`), que antepone esa URL y envía la cookie de sesión. Los servicios de cada vista deben inyectar `Api` en lugar de usar `HttpClient` directamente. El backend ya permite peticiones desde `http://localhost:4200` (CORS).
 
+### Datos de prueba (mientras el backend completa T30 y T31)
+
+En desarrollo (`npm start`), `usarDatosDePrueba: true` en `src/environments/environment.development.ts` hace que las rutas de la API que Flask aún no tiene respondan con datos simulados (`src/app/core/mocks/`):
+
+- `GET /articulos` y `GET /articulos/<id>`: los 20 artículos de `backend/TECNOSHOP.db.sql`.
+- `/auth/registro`, `/auth/login`, `/auth/logout` y `/auth/sesion`: cuentas en memoria. Cuenta de demostración: **demo@tecnoshop.com / Demo1234**.
+
+Cuando el backend tenga esos endpoints, cambia `usarDatosDePrueba` a `false`. `ng build` (producción) nunca usa datos de prueba.
+
 ## Estructura
 
 ```
