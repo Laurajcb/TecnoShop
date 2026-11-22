@@ -30,9 +30,14 @@ def create_app(config_extra=None):
     from .errores import registrar_manejadores
     registrar_manejadores(app)
 
+    from .seguridad import configurar_jwt
+    configurar_jwt(app)
+
     from .routes.salud import bp as salud_bp
     from .routes.articulos import bp as articulos_bp
+    from .routes.auth import bp as auth_bp
     app.register_blueprint(salud_bp)
     app.register_blueprint(articulos_bp)
+    app.register_blueprint(auth_bp)
 
     return app
