@@ -1,59 +1,61 @@
-# Frontend
+# TecnoShop · Frontend (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.3.0.
+Interfaz del catálogo TecnoShop. Proyecto base creado en la tarea **T24** (JSO) con Angular 22.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- [Node.js](https://nodejs.org/) 22 o superior (incluye npm)
+- La API de Flask (`/backend`) ejecutándose para ver datos reales
 
-```bash
-ng serve
-```
+No hace falta instalar Angular CLI de forma global: se usa con `npx ng` o con los scripts de npm.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Instalar
 
 ```bash
-ng generate component component-name
+cd frontend
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Ejecutar en desarrollo
 
 ```bash
-ng generate --help
+npm start          # equivale a: npx ng serve
 ```
 
-## Building
+Abre <http://localhost:4200>. La página se recarga sola al guardar cambios.
 
-To build the project run:
+## Otros comandos
 
-```bash
-ng build
+| Comando | Qué hace |
+| --- | --- |
+| `npm run build` | Compila para producción en `dist/frontend/` |
+| `npm test` | Ejecuta las pruebas unitarias (Vitest) |
+| `npx ng g c pages/nombre` | Crea un componente nuevo |
+
+## Conexión con la API
+
+La URL del backend está en `src/environments/`:
+
+| Archivo | Se usa con | `apiUrl` |
+| --- | --- | --- |
+| `environment.development.ts` | `ng serve` | `http://localhost:5000/api` |
+| `environment.ts` | `ng build` | `http://localhost:5000/api` |
+
+Todas las llamadas HTTP pasan por el servicio `Api` (`src/app/core/services/api.ts`), que antepone esa URL y envía la cookie de sesión. Los servicios de cada vista deben inyectar `Api` en lugar de usar `HttpClient` directamente. El backend ya permite peticiones desde `http://localhost:4200` (CORS).
+
+## Estructura
+
+```
+src/app/
+├── core/services/api.ts      → servicio base para la API de Flask
+├── pages/                    → una carpeta por vista
+│   ├── catalogo/             → /                 (T32 · R02, R04, R07)
+│   ├── detalle-articulo/     → /articulo/:id     (T27 · R04)
+│   ├── registro/             → /registro         (T33 · R01)
+│   ├── iniciar-sesion/       → /iniciar-sesion   (T33 · R01)
+│   └── carrito/              → /carrito          (T46 · R06)
+├── app.routes.ts             → rutas (carga diferida de cada vista)
+└── app.html                  → encabezado con navegación + <router-outlet>
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Los componentes de `pages/` están vacíos: cada uno se implementa en la tarea indicada. Los componentes reutilizables (tarjeta de artículo, buscador, etc.) van en `src/app/components/`.

@@ -14,6 +14,16 @@ Catálogo virtual de productos tecnológicos (celulares, computadores, audífono
 
 Lee la [guía de uso del repositorio](docs/guia-repositorio.md): explica cómo crear ramas, hacer commits y abrir *pull requests*.
 
+## Ejecutar el frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Abre <http://localhost:4200>. Requiere Node.js 22+. Más detalles en [frontend/README.md](frontend/README.md).
+
 ## Equipo
 
 | Integrante | Iniciales | Rol TSPi |
