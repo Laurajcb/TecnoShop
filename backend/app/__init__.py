@@ -27,7 +27,12 @@ def create_app(config_extra=None):
     from . import db
     db.init_app(app)
 
+    from .errores import registrar_manejadores
+    registrar_manejadores(app)
+
     from .routes.salud import bp as salud_bp
+    from .routes.articulos import bp as articulos_bp
     app.register_blueprint(salud_bp)
+    app.register_blueprint(articulos_bp)
 
     return app
