@@ -7,7 +7,7 @@ import { Articulo } from '../../core/models/articulo';
  * Tarjeta del catálogo (R04, R07): imagen, categoría · marca, nombre, precio y stock.
  * Con stock 0 muestra "Agotado". La imagen y "Ver detalle" abren la vista ampliada.
  *
- * Versión mínima hecha en T32 para no bloquear el catálogo; T27 (LC) la completa.
+ * Hecha en T32 (JSO); la vista ampliada que abre se completó en T27 (LC).
  */
 @Component({
   selector: 'app-tarjeta-articulo',
