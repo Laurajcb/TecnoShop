@@ -1,7 +1,7 @@
 <header class="encabezado">
   <a routerLink="/" class="marca">TecnoShop</a>
-  <nav>
-    <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Catálogo</a>
+  <app-buscador class="buscador" [valor]="busqueda()" (buscar)="buscar($event)" />
+  <nav aria-label="Principal">
     <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
     <a routerLink="/iniciar-sesion" routerLinkActive="activo">Iniciar sesión</a>
     <a routerLink="/registro" routerLinkActive="activo">Registrarse</a>

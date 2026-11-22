@@ -1,2 +1,26 @@
-<h1>Catálogo</h1>
-<p>Vista pendiente de implementar (tarea T32).</p>
+@let e = estado();
+<section class="catalogo" [attr.aria-busy]="e.cargando">
+  <h1 class="titulo">Catálogo</h1>
+
+  @if (e.cargando) {
+    <p class="aviso" role="status">Cargando artículos…</p>
+  } @else if (e.error) {
+    <p class="aviso error" role="alert">
+      No se pudo cargar el catálogo. Verifica que la API esté encendida e intenta de nuevo.
+    </p>
+  } @else if (e.articulos.length === 0) {
+    <p class="aviso" role="status">Sin resultados</p>
+  } @else {
+    <p class="conteo" role="status">
+      Mostrando {{ e.articulos.length }} {{ e.articulos.length === 1 ? 'artículo' : 'artículos' }}
+      @if (busqueda()) {
+        para «{{ busqueda() }}»
+      }
+    </p>
+    <ul class="grilla">
+      @for (articulo of e.articulos; track articulo.id) {
+        <li><app-tarjeta-articulo [articulo]="articulo" /></li>
+      }
+    </ul>
+  }
+</section>

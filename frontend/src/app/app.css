@@ -2,35 +2,51 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--borde);
+  background: var(--fondo-suave);
 }
 
 .marca {
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   text-decoration: none;
   color: inherit;
+}
+
+.buscador {
+  flex: 1 1 280px;
 }
 
 nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 nav a {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
   color: inherit;
   text-decoration: none;
+  background: var(--fondo);
 }
 
 nav a.activo {
+  border-color: var(--texto);
   font-weight: 700;
-  text-decoration: underline;
+}
+
+nav a:focus-visible,
+.marca:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
 }
 
 .contenido {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 1rem;
 }
