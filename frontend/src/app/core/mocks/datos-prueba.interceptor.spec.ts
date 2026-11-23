@@ -27,13 +27,22 @@ describe('Datos de prueba: GET /articulos', () => {
   });
 
   it('R03: filtra por marca y rango de precio', () => {
-    const resultado = buscar({ marca: '1', precio_min: '400000', precio_max: '600000' });
+    const resultado = buscar({ marca_id: '1', precio_min: '400000', precio_max: '600000' });
+    expect(resultado.length).toBeGreaterThan(0);
     expect(
-      resultado.every((a) => a.marca_id === 1 && a.precio >= 400000 && a.precio <= 600000),
+      resultado.every((a) => a.marca.id === 1 && a.precio >= 400000 && a.precio <= 600000),
     ).toBe(true);
   });
 
-  it('la lista no incluye las características (solo el detalle)', () => {
-    expect('caracteristicas' in buscar({})[0]).toBe(false);
+  it('R02: ignora las tildes, como el backend', () => {
+    expect(buscar({ q: 'audífonos' })).toEqual(buscar({ q: 'audifonos' }));
+  });
+
+  it('responde con la forma de docs/api.md: marca y categoría como objetos, sin descripción', () => {
+    const [primero] = buscar({});
+    expect(primero.marca).toEqual({ id: expect.any(Number), nombre: expect.any(String) });
+    expect(primero.categoria).toEqual({ id: expect.any(Number), nombre: expect.any(String) });
+    expect(Array.isArray(primero.caracteristicas)).toBe(true);
+    expect('descripcion' in primero).toBe(false);
   });
 });
