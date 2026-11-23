@@ -1,8 +1,11 @@
-/** Artículo tal como lo devuelve GET /api/articulos (vista v_articulos). */
+// ---------------------------------------------------------------------------
+// Forma que usan los componentes (plana, cómoda para las plantillas).
+// ---------------------------------------------------------------------------
+
+/** Artículo del catálogo (R02, R04, R07). */
 export interface Articulo {
   id: number;
   nombre: string;
-  descripcion: string;
   /** Pesos colombianos, entero (ej. 1499000). */
   precio: number;
   stock: number;
@@ -20,16 +23,44 @@ export interface Caracteristica {
   valor: string;
 }
 
-/** Respuesta de GET /api/articulos/<id>: el artículo con sus características. */
+/** Vista ampliada (R04): el artículo con descripción completa y características. */
 export interface ArticuloDetalle extends Articulo {
+  descripcion: string;
   caracteristicas: Caracteristica[];
 }
 
-/** Parámetros de GET /api/articulos. Todos son opcionales (diseño.md §6.1). */
+/** Parámetros de GET /api/articulos. Todos son opcionales (docs/api.md §4). */
 export interface FiltrosArticulos {
   q?: string;
-  categoria?: number;
-  marca?: number;
+  categoria_id?: number;
+  marca_id?: number;
   precio_min?: number;
   precio_max?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Forma exacta que devuelve Flask (docs/api.md §4). Solo la usa ArticulosService.
+// ---------------------------------------------------------------------------
+
+export interface Referencia {
+  id: number;
+  nombre: string;
+}
+
+/** Elemento de GET /api/articulos. */
+export interface ArticuloApi {
+  id: number;
+  nombre: string;
+  precio: number;
+  stock: number;
+  agotado: boolean;
+  imagen_url: string;
+  marca: Referencia;
+  categoria: Referencia;
+  caracteristicas: Caracteristica[];
+}
+
+/** Respuesta de GET /api/articulos/<id>. */
+export interface ArticuloDetalleApi extends ArticuloApi {
+  descripcion: string;
 }

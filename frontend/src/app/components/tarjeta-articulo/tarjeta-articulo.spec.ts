@@ -11,7 +11,6 @@ registerLocaleData(localeEsCo);
 const ARTICULO: Articulo = {
   id: 7,
   nombre: 'JBL Flip 7',
-  descripcion: 'Parlante portátil',
   precio: 1499000,
   stock: 5,
   imagen_url: 'https://example.com/jbl.jpg',

@@ -1,16 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-/** Cuerpo de los errores de la API (diseño.md §6.2). */
+/** Cuerpo de todo error de la API (docs/api.md §1, "Formato único de error"). */
 export interface ErrorApi {
-  error: string;
-  mensaje: string;
+  error: {
+    /** Constante para la lógica, ej. 'CORREO_EXISTE'. */
+    codigo: string;
+    /** Texto exacto del criterio de aceptación, listo para mostrar. */
+    mensaje: string;
+  };
 }
 
 /** Código de error de la API (`CORREO_EXISTE`, …) o null si no vino en la respuesta. */
 export function codigoError(respuesta: unknown): string | null {
   if (respuesta instanceof HttpErrorResponse) {
     const cuerpo = respuesta.error as Partial<ErrorApi> | null;
-    return typeof cuerpo?.error === 'string' ? cuerpo.error : null;
+    const codigo = cuerpo?.error?.codigo;
+    return typeof codigo === 'string' ? codigo : null;
   }
   return null;
 }
