@@ -1,13 +1,13 @@
 # Documento de diseño · TecnoShop
 
-**Responsable:** Johan Sotomayor (JSO), gerente de desarrollo · **Tarea:** T18 · **Versión:** 1.0 · **Fecha:** 21-11-2026
+**Responsable:** Johan Sotomayor (JSO), gerente de desarrollo · **Tarea:** T18 · **Versión:** 1.1 · **Fecha:** 22-11-2026
 **Inspección:** Jennyfer Santana (T22) · **Requisitos cubiertos:** R01–R07
 
 Este documento convierte los requisitos R01–R07 del plan en una arquitectura, una lista de componentes y unas convenciones de código. Se complementa con:
 
 - [`docs/wireframes/`](wireframes/README.md): pantallas de baja fidelidad (T21, LC)
 - `backend/app/schema.sql`: modelo de datos (T19, JP)
-- `docs/api.md`: contrato detallado de la API (T20, JP). La sección 6 de este documento es la **propuesta inicial** que T20 debe confirmar o corregir.
+- [`docs/api.md`](api.md): contrato de la API (T20, JP). **Es la fuente de verdad** para rutas, campos y errores; la sección 6 de este documento solo lo resume.
 
 ---
 
@@ -22,7 +22,7 @@ flowchart LR
         A[Vistas y componentes] --> S[Servicios por dominio]
         S --> API[Servicio Api]
     end
-    API -- "HTTP + JSON<br/>cookie de sesión" --> F
+    API -- "HTTP + JSON<br/>cookie JWT + CSRF<br/>(proxy /api)" --> F
     subgraph Backend["backend/ · Flask 3 · localhost:5000"]
         F[Blueprints /api/*] --> D[db.py · sqlite3]
     end
@@ -41,7 +41,7 @@ flowchart LR
 | --- | --- | --- |
 | D1 | El frontend es una SPA y el backend solo devuelve JSON | Cada equipo trabaja en paralelo; la API se prueba sola con Postman y pytest (T17, T51) |
 | D2 | Todo el frontend habla con Flask **solo** a través del servicio `Api` | La URL del backend vive en un único lugar (`src/environments/`) |
-| D3 | Sesión con la **cookie de sesión firmada de Flask** (`session`) y no con JWT | Menos código y suficiente para un prototipo local. CORS ya está configurado con `supports_credentials` para `localhost:4200` |
+| D3 | Sesión con **JWT en una cookie `HttpOnly`** (`flask-jwt-extended`) y CSRF por doble envío | Decidido en T20 (`docs/api.md` §2). JavaScript no puede leer el token, y el mismo backend sirve a clientes futuros con `Authorization: Bearer`. En desarrollo Angular usa un proxy (`/api` → `localhost:5000`) para que la cookie CSRF sea del mismo origen |
 | D4 | Las reglas críticas se validan **en la API y en la base de datos** | El stock se valida en el endpoint (mensaje para el usuario) y en el *trigger* `STOCK_INSUFICIENTE` (segunda barrera, R05) |
 | D5 | Los totales del carrito se calculan en el backend (vistas `v_carrito_detalle` y `v_carrito_resumen`) | Una sola fuente de verdad para R06; el frontend solo muestra los totales |
 | D6 | Precios en pesos colombianos como **enteros** | Evita errores de redondeo; el frontend los formatea como `$1.499.000` |
@@ -99,7 +99,7 @@ La vista ampliada se muestra como **ventana superpuesta** sobre el catálogo (wi
 
 | Servicio | Responsabilidad | Endpoints que usa |
 | --- | --- | --- |
-| `Api` (ya existe, T24) | Antepone `environment.apiUrl` y envía la cookie (`withCredentials`) | Todos |
+| `Api` (ya existe, T24) | Antepone `environment.apiUrl` (`/api`) y envía las cookies (`withCredentials`) | Todos |
 | `ArticulosService` | Listar, buscar, filtrar y consultar el detalle; opciones de filtros | `/articulos`, `/categorias`, `/marcas` |
 | `SesionService` | Registro, inicio y cierre de sesión. Guarda el usuario actual en un `signal` que lee el encabezado | `/auth/*` |
 | `CarritoService` | Agregar, cambiar cantidad, eliminar. Guarda el carrito y los totales en `signals` para el contador del encabezado | `/carrito/*` |
@@ -108,10 +108,11 @@ La vista ampliada se muestra como **ventana superpuesta** sobre el catálogo (wi
 
 ### 2.5 Manejo de sesión en el frontend
 
-1. Al arrancar, `SesionService` llama a `GET /api/auth/sesion` para saber si ya hay sesión iniciada (la cookie sigue viva tras recargar la página).
+1. Al arrancar, `SesionService` llama a `GET /api/auth/me` para saber si ya hay sesión iniciada (la cookie sigue viva tras recargar la página).
 2. `sesionGuard` protege `/carrito`: sin sesión, redirige a `/iniciar-sesion?volver=/carrito`.
 3. En el detalle, *Agregar al carrito* sin sesión lleva al inicio de sesión (R05) y, tras iniciar sesión, devuelve al artículo.
-4. Si la API responde `401` en cualquier petición, se limpia el usuario y se envía al inicio de sesión.
+4. Si la API responde `401` fuera de `/auth/*` (por ejemplo, el token venció tras 1 hora), `sesionVencidaInterceptor` limpia el usuario y envía al inicio de sesión.
+5. CSRF: `withXsrfConfiguration` copia la cookie `csrf_access_token` en el encabezado `X-CSRF-TOKEN` en cada `POST`, `PUT` y `DELETE`.
 
 ---
 
@@ -124,6 +125,8 @@ backend/
 ├── app/
 │   ├── __init__.py      → create_app(): configuración, CORS, registro de blueprints
 │   ├── db.py            → get_db(), init_db(), comando `flask --app app init-db`
+│   ├── errores.py       → formato único de error {error: {codigo, mensaje}}
+│   ├── seguridad.py     → configuración de JWT y CSRF            (T31)
 │   ├── schema.sql       → tablas, vistas, triggers y categorías base
 │   └── routes/
 │       ├── salud.py     → GET /api/salud                  (T25, ya existe)
@@ -140,9 +143,9 @@ Cada archivo de `routes/` es un **Blueprint** con `url_prefix="/api"`, igual que
 
 - Contraseñas con `werkzeug.security.generate_password_hash` / `check_password_hash` (columna `contrasena_hash`). Nunca en texto plano ni en las respuestas.
 - Consultas SQL **siempre parametrizadas** (`?`), nunca armadas con *f-strings*.
-- La búsqueda por nombre no distingue mayúsculas: `nombre LIKE ? COLLATE NOCASE` con `%texto%` (R02).
-- Las rutas del carrito leen el usuario de `session["usuario_id"]`; sin sesión responden `401`.
-- Los errores se devuelven con el formato de la sección 6.2 para que el frontend muestre el texto exacto del criterio de aceptación.
+- La búsqueda por nombre no distingue mayúsculas ni tildes: `normalizar(nombre) LIKE ?` con `%texto%` (R02).
+- Ninguna ruta recibe `usuario_id`: el usuario sale **siempre del token** (`get_jwt_identity()`). Sin sesión responden `401 NO_AUTENTICADO`.
+- Los errores se devuelven con el formato de `docs/api.md` §1 para que el frontend muestre el texto exacto del criterio de aceptación.
 
 ---
 
@@ -199,7 +202,7 @@ erDiagram
 ### 5.1 Búsqueda y filtros (R02, R03)
 
 1. El usuario escribe en el buscador o aplica filtros.
-2. `Catalogo` llama a `ArticulosService.buscar({ q, categoria, marca, precio_min, precio_max })`.
+2. `Catalogo` llama a `ArticulosService.buscar({ q, categoria_id, marca_id, precio_min, precio_max })`.
 3. La API responde la lista filtrada. Si está vacía, la vista muestra **"Sin resultados"**.
 4. **"Limpiar filtros"** borra los parámetros y vuelve a pedir el catálogo completo. Con la búsqueda vacía también se muestra todo.
 
@@ -237,40 +240,19 @@ sequenceDiagram
 
 ---
 
-## 6. Propuesta de API (para confirmar en T20)
+## 6. API
 
-Base: `http://localhost:5000/api`. Todas las respuestas son JSON.
+El contrato completo está en [`docs/api.md`](api.md) (T20, JP). Resumen de lo que más afecta al frontend:
 
-### 6.1 Endpoints
-
-| Método y ruta | Qué hace | Sesión | Req. | Tarea |
-| --- | --- | --- | --- | --- |
-| `GET /salud` | Verifica la API y la base de datos | No | — | T25 ✅ |
-| `GET /articulos?q=&categoria=&marca=&precio_min=&precio_max=` | Lista el catálogo; todos los parámetros son opcionales | No | R02, R03, R07 | T30, T42 |
-| `GET /articulos/<id>` | Detalle con descripción y características | No | R04 | T30 |
-| `GET /categorias` · `GET /marcas` | Opciones para el panel de filtros | No | R03 | T42 |
-| `POST /auth/registro` | Crea la cuenta | No | R01 | T31 |
-| `POST /auth/login` · `POST /auth/logout` | Inicia o cierra sesión | No | R01 | T31 |
-| `GET /auth/sesion` | Devuelve el usuario actual o `401` | — | R01 | T31 |
-| `GET /carrito` | Líneas del carrito y totales | Sí | R06 | T43 |
-| `POST /carrito/items` | Agrega `{ articulo_id, cantidad }` | Sí | R05 | T43 |
-| `PUT /carrito/items/<articulo_id>` | Cambia la cantidad | Sí | R06 | T43 |
-| `DELETE /carrito/items/<articulo_id>` | Elimina la línea | Sí | R06 | T43 |
-
-### 6.2 Formato de errores
-
-```json
-{ "error": "STOCK_INSUFICIENTE", "mensaje": "Solo hay 3 unidades disponibles" }
-```
-
-| HTTP | `error` | Cuándo |
-| --- | --- | --- |
-| 400 | `DATOS_INVALIDOS` | Faltan campos o el formato no es válido |
-| 401 | `NO_AUTENTICADO` | Ruta del carrito sin sesión |
-| 401 | `CREDENCIALES_INVALIDAS` | "Correo o contraseña inválidos" |
-| 404 | `NO_ENCONTRADO` | El artículo no existe |
-| 409 | `CORREO_EXISTE` | "Este correo ya tiene una cuenta" |
-| 409 | `STOCK_INSUFICIENTE` | La cantidad supera el stock |
+| Tema | Acuerdo |
+| --- | --- |
+| Base | `/api` (en desarrollo, el proxy de Angular la reenvía a `http://localhost:5000`) |
+| Respuestas correctas | El recurso directamente (objeto o lista). Sin coincidencias: `200` con `[]` |
+| Errores | `{ "error": { "codigo": "CORREO_EXISTE", "mensaje": "Este correo ya tiene una cuenta" } }`; el `mensaje` es el texto exacto del criterio de aceptación |
+| Artículo | `marca` y `categoria` llegan como objetos `{ id, nombre }`; `descripcion` solo en el detalle. `ArticulosService` los aplana para las plantillas |
+| Filtros | `q`, `categoria_id`, `marca_id`, `precio_min`, `precio_max` |
+| Sesión | `POST /auth/registro`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` |
+| Carrito | Toda ruta responde el carrito completo y recalculado (`items`, `total_articulos`, `total_pagar`) |
 
 ---
 
@@ -313,7 +295,7 @@ Base: `http://localhost:5000/api`. Todas las respuestas son JSON.
 
 1. **Botón "Confirmar pedido"** (wireframe 07): la confirmación del pedido está **fuera del alcance** (plan 1.4.2). Propuesta: quitarlo o dejarlo deshabilitado con el texto "Próximamente".
 2. **Paleta de colores:** pendiente la votación entre A (Azul Glaciar) y B (Índigo Menta), según el archivo de Figma. Se aplica en T49.
-3. **Puerto del backend:** se asume el `5000` (el de Flask por defecto). Si cambia, solo se ajusta `apiUrl` en `frontend/src/environments/`.
+3. **Puerto del backend:** se usa el `5000` (el de Flask por defecto). En algunos equipos Windows ese puerto ya está ocupado por el sistema; en ese caso se corre Flask con `--port 5001` y se ajusta `target` en `frontend/proxy.conf.json`.
 4. **Imágenes:** el seed usa URLs externas en `imagen_url`, y el repositorio también trae la carpeta `backend/IMAGENES TECNOSHOP/`. Hay que decidir una sola fuente para cumplir con "sin imágenes rotas" (R07). Propuesta: servir las imágenes locales desde Flask (`/static/articulos/…`) con nombres sin espacios.
 
 ## Historial
@@ -321,3 +303,4 @@ Base: `http://localhost:5000/api`. Todas las respuestas son JSON.
 | Versión | Fecha | Cambio | Autor |
 | --- | --- | --- | --- |
 | 1.0 | 21-11-2026 | Versión inicial | JSO |
+| 1.1 | 22-11-2026 | Alinea sesión (D3), sección 6 y flujos con el contrato de T20 (`docs/api.md`) | JSO |
