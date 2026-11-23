@@ -42,7 +42,9 @@ describe('IniciarSesion (R01)', () => {
   it('con datos incorrectos muestra "Correo o contraseña inválidos"', () => {
     const noAutorizado = new HttpErrorResponse({
       status: 401,
-      error: { error: 'CREDENCIALES_INVALIDAS', mensaje: 'Correo o contraseña inválidos' },
+      error: {
+        error: { codigo: 'CREDENCIALES_INVALIDAS', mensaje: 'Correo o contraseña inválidos' },
+      },
     });
     const { el, enviar, navegar } = crear(throwError(() => noAutorizado));
     enviar();

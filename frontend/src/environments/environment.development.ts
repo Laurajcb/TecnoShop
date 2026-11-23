@@ -1,10 +1,12 @@
-// Configuración para `ng serve` (desarrollo). Cambia apiUrl si Flask corre en otro puerto.
+// Configuración para `ng serve` (desarrollo).
+// apiUrl es relativa: proxy.conf.json reenvía /api a Flask (http://localhost:5000), así
+// la cookie CSRF es del mismo origen y Angular puede enviarla en X-CSRF-TOKEN (docs/api.md §2).
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000/api',
+  apiUrl: '/api',
   /**
-   * true: las rutas de la API que aún no existen en Flask se responden con datos de prueba
-   * (src/app/core/mocks/). Pásalo a false cuando el backend tenga T30 y T31.
+   * true: catálogo y autenticación se responden con datos de prueba (src/app/core/mocks/)
+   * sin necesitar Flask. Pásalo a false para usar la API real (T30 y T31).
    */
   usarDatosDePrueba: true,
 };

@@ -26,37 +26,45 @@ Abre <http://localhost:4200>. La página se recarga sola al guardar cambios.
 
 ## Otros comandos
 
-| Comando | Qué hace |
-| --- | --- |
-| `npm run build` | Compila para producción en `dist/frontend/` |
-| `npm test` | Ejecuta las pruebas unitarias (Vitest) |
-| `npx ng g c pages/nombre` | Crea un componente nuevo |
+| Comando                   | Qué hace                                    |
+| ------------------------- | ------------------------------------------- |
+| `npm run build`           | Compila para producción en `dist/frontend/` |
+| `npm test`                | Ejecuta las pruebas unitarias (Vitest)      |
+| `npx ng g c pages/nombre` | Crea un componente nuevo                    |
 
 ## Conexión con la API
 
-La URL del backend está en `src/environments/`:
+En desarrollo `npm start` usa un proxy (`proxy.conf.json`): Angular llama a `/api/...` y el servidor de desarrollo lo reenvía a Flask en `http://localhost:5000`. Así la API es del mismo origen, que es lo que pide la protección CSRF del contrato (`docs/api.md` §2).
 
-| Archivo | Se usa con | `apiUrl` |
-| --- | --- | --- |
-| `environment.development.ts` | `ng serve` | `http://localhost:5000/api` |
-| `environment.ts` | `ng build` | `http://localhost:5000/api` |
+| Archivo                      | Se usa con | `apiUrl`                                     |
+| ---------------------------- | ---------- | -------------------------------------------- |
+| `environment.development.ts` | `ng serve` | `/api` (proxy a `localhost:5000`)            |
+| `environment.ts`             | `ng build` | `/api` (servir en el mismo origen que Flask) |
 
-Todas las llamadas HTTP pasan por el servicio `Api` (`src/app/core/services/api.ts`), que antepone esa URL y envía la cookie de sesión. Los servicios de cada vista deben inyectar `Api` en lugar de usar `HttpClient` directamente. El backend ya permite peticiones desde `http://localhost:4200` (CORS).
+Todas las llamadas HTTP pasan por el servicio `Api` (`src/app/core/services/api.ts`), que antepone esa URL y envía las cookies. Los servicios de cada vista deben inyectar `Api` en lugar de usar `HttpClient` directamente.
 
-### Datos de prueba (mientras el backend completa T30 y T31)
+Sesión (T31): Flask guarda el JWT en una cookie `HttpOnly`. Angular copia la cookie `csrf_access_token` al encabezado `X-CSRF-TOKEN` en cada `POST`, `PUT` y `DELETE` (`withXsrfConfiguration` en `app.config.ts`). Si la API responde 401 fuera de `/auth/*`, `sesionVencidaInterceptor` olvida al usuario y lo lleva a iniciar sesión.
 
-En desarrollo (`npm start`), `usarDatosDePrueba: true` en `src/environments/environment.development.ts` hace que las rutas de la API que Flask aún no tiene respondan con datos simulados (`src/app/core/mocks/`):
+### Datos de prueba o API real
 
-- `GET /articulos` y `GET /articulos/<id>`: los 20 artículos de `backend/TECNOSHOP.db.sql`.
-- `/auth/registro`, `/auth/login`, `/auth/logout` y `/auth/sesion`: cuentas en memoria. Cuenta de demostración: **demo@tecnoshop.com / Demo1234**.
+`usarDatosDePrueba` en `src/environments/environment.development.ts` decide de dónde salen los datos en desarrollo:
 
-Cuando el backend tenga esos endpoints, cambia `usarDatosDePrueba` a `false`. `ng build` (producción) nunca usa datos de prueba.
+- `true`: no hace falta Flask. Catálogo y autenticación se simulan en `src/app/core/mocks/` con la forma exacta de `docs/api.md` (los 20 artículos de `backend/TECNOSHOP.db.sql`; cuenta de demostración **demo@tecnoshop.com / Demo1234**).
+- `false`: usa la API real. Enciende Flask en el puerto 5000 antes de `npm start`.
+
+> Si Windows ya tiene ocupado el puerto 5000 (Flask muestra _"Intento de acceso a un socket no permitido"_), ejecuta Flask con `--port 5001` y cambia `target` en `proxy.conf.json` (sin subir ese cambio).
+
+`ng build` (producción) nunca usa datos de prueba.
 
 ## Estructura
 
 ```
 src/app/
-├── core/services/api.ts      → servicio base para la API de Flask
+├── core/
+│   ├── services/             → Api (base), ArticulosService, SesionService
+│   ├── interceptors/         → sesión vencida (401)
+│   ├── guards/               → sesionGuard (rutas que piden sesión)
+│   └── mocks/                → datos de prueba con la forma de docs/api.md
 ├── pages/                    → una carpeta por vista
 │   ├── catalogo/             → /                 (T32 · R02, R04, R07)
 │   ├── detalle-articulo/     → /articulo/:id     (T27 · R04)

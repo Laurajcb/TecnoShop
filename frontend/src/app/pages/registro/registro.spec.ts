@@ -30,7 +30,12 @@ function crear(respuesta: ReturnType<SesionService['registrar']>) {
 describe('Registro (R01)', () => {
   it('con datos válidos crea la cuenta y muestra un texto de confirmación', () => {
     const { el, registrar, escribir, enviar } = crear(
-      of({ id: 2, nombre: 'Ana', correo: 'ana@correo.com' }),
+      of({
+        id: 2,
+        nombre: 'Ana',
+        correo: 'ana@correo.com',
+        mensaje: 'Cuenta creada correctamente',
+      }),
     );
     escribir('nombre', ' Ana ');
     escribir('correo', 'ana@correo.com');
@@ -48,7 +53,7 @@ describe('Registro (R01)', () => {
   it('si el correo ya existe muestra "Este correo ya tiene una cuenta"', () => {
     const conflicto = new HttpErrorResponse({
       status: 409,
-      error: { error: 'CORREO_EXISTE', mensaje: 'Este correo ya tiene una cuenta' },
+      error: { error: { codigo: 'CORREO_EXISTE', mensaje: 'Este correo ya tiene una cuenta' } },
     });
     const { el, escribir, enviar } = crear(throwError(() => conflicto));
     escribir('nombre', 'Ana');

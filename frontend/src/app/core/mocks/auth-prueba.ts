@@ -4,7 +4,7 @@ import { DatosInicioSesion, DatosRegistro, Usuario } from '../models/usuario';
 import { responder } from './respuesta-prueba';
 
 /**
- * Simula /auth/* mientras llega T31. Las cuentas viven en memoria (se pierden al recargar),
+ * Simula /auth/* con la forma de docs/api.md §3 (útil para trabajar sin Flask). Las cuentas viven en memoria (se pierden al recargar),
  * excepto la de demostración. La sesión se guarda en sessionStorage, como haría la cookie.
  *
  * Cuenta de demostración: demo@tecnoshop.com / Demo1234
@@ -31,10 +31,10 @@ export function manejarAuthPrueba(
   if (req.method === 'POST' && ruta === '/auth/registro') {
     const datos = req.body as DatosRegistro;
     if (!datos?.nombre?.trim() || !datos?.correo?.trim() || !datos?.contrasena) {
-      return responder(400, { error: 'DATOS_INVALIDOS', mensaje: 'Completa todos los campos' });
+      return responder(400, fallo('DATOS_INVALIDOS', 'Completa todos los campos'));
     }
     if (buscarCuenta(datos.correo)) {
-      return responder(409, { error: 'CORREO_EXISTE', mensaje: 'Este correo ya tiene una cuenta' });
+      return responder(409, fallo('CORREO_EXISTE', 'Este correo ya tiene una cuenta'));
     }
     const cuenta: CuentaPrueba = {
       id: cuentas.length + 1,
@@ -43,20 +43,17 @@ export function manejarAuthPrueba(
       contrasena: datos.contrasena,
     };
     cuentas.push(cuenta);
-    return responder(201, { usuario: publico(cuenta), mensaje: 'Cuenta creada' });
+    return responder(201, { ...publico(cuenta), mensaje: 'Cuenta creada correctamente' });
   }
 
   if (req.method === 'POST' && ruta === '/auth/login') {
     const datos = req.body as DatosInicioSesion;
     const cuenta = buscarCuenta(datos?.correo ?? '');
     if (!cuenta || cuenta.contrasena !== datos.contrasena) {
-      return responder(401, {
-        error: 'CREDENCIALES_INVALIDAS',
-        mensaje: 'Correo o contraseña inválidos',
-      });
+      return responder(401, fallo('CREDENCIALES_INVALIDAS', 'Correo o contraseña inválidos'));
     }
     guardarSesion(publico(cuenta));
-    return responder(200, { usuario: publico(cuenta) });
+    return responder(200, publico(cuenta));
   }
 
   if (req.method === 'POST' && ruta === '/auth/logout') {
@@ -64,14 +61,18 @@ export function manejarAuthPrueba(
     return responder(200, { mensaje: 'Sesión cerrada' });
   }
 
-  if (req.method === 'GET' && ruta === '/auth/sesion') {
+  if (req.method === 'GET' && ruta === '/auth/me') {
     const usuario = leerSesion();
     return usuario
-      ? responder(200, { usuario })
-      : responder(401, { error: 'NO_AUTENTICADO', mensaje: 'No has iniciado sesión' });
+      ? responder(200, usuario)
+      : responder(401, fallo('NO_AUTENTICADO', 'Debes iniciar sesión'));
   }
 
   return null;
+}
+
+function fallo(codigo: string, mensaje: string) {
+  return { error: { codigo, mensaje } };
 }
 
 /** El correo no distingue mayúsculas, igual que la columna `correo COLLATE NOCASE`. */

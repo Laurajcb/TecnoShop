@@ -1,11 +1,11 @@
 import { computed, inject, Service, signal } from '@angular/core';
 import { Observable, catchError, firstValueFrom, map, of, tap } from 'rxjs';
-import { DatosInicioSesion, DatosRegistro, RespuestaUsuario, Usuario } from '../models/usuario';
+import { DatosInicioSesion, DatosRegistro, Usuario, UsuarioCreado } from '../models/usuario';
 import { Api } from './api';
 
 /**
- * Sesión del cliente (R01). Flask guarda la sesión en una cookie; aquí solo se
- * recuerda quién es el usuario para mostrar su nombre y proteger rutas.
+ * Sesión del cliente (R01). Flask guarda el JWT en una cookie HttpOnly (docs/api.md §2);
+ * aquí solo se recuerda quién es el usuario para mostrar su nombre y proteger rutas.
  */
 @Service()
 export class SesionService {
@@ -18,8 +18,7 @@ export class SesionService {
   /** Al arrancar la app: si la cookie sigue viva, recupera el usuario. */
   cargar(): Promise<void> {
     return firstValueFrom(
-      this.api.get<RespuestaUsuario>('/auth/sesion').pipe(
-        map((r) => r.usuario),
+      this.api.get<Usuario>('/auth/me').pipe(
         catchError(() => of(null)),
         tap((usuario) => this.usuarioActual.set(usuario)),
         map(() => undefined),
@@ -28,15 +27,19 @@ export class SesionService {
   }
 
   /** Crea la cuenta. No inicia sesión: el criterio de R01 pide solo un texto de confirmación. */
-  registrar(datos: DatosRegistro): Observable<Usuario> {
-    return this.api.post<RespuestaUsuario>('/auth/registro', datos).pipe(map((r) => r.usuario));
+  registrar(datos: DatosRegistro): Observable<UsuarioCreado> {
+    return this.api.post<UsuarioCreado>('/auth/registro', datos);
   }
 
   iniciarSesion(datos: DatosInicioSesion): Observable<Usuario> {
-    return this.api.post<RespuestaUsuario>('/auth/login', datos).pipe(
-      map((r) => r.usuario),
-      tap((usuario) => this.usuarioActual.set(usuario)),
-    );
+    return this.api
+      .post<Usuario>('/auth/login', datos)
+      .pipe(tap((usuario) => this.usuarioActual.set(usuario)));
+  }
+
+  /** La API respondió 401 (token vencido): se olvida al usuario sin llamar a la API. */
+  olvidar(): void {
+    this.usuarioActual.set(null);
   }
 
   cerrarSesion(): Observable<void> {
