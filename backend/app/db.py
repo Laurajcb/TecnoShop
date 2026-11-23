@@ -6,9 +6,22 @@
 - Comando de consola: flask --app app init-db
 """
 import sqlite3
+import unicodedata
 
 import click
 from flask import current_app, g
+
+
+def normalizar(texto):
+    """Minúsculas y sin tildes: 'Audífonos' -> 'audifonos'.
+
+    NFD separa cada letra de su tilde ('í' -> 'i' + '´'); luego se descartan
+    las marcas diacríticas (categoría Unicode 'Mn').
+    """
+    if texto is None:
+        return ""
+    descompuesto = unicodedata.normalize("NFD", str(texto).lower())
+    return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
 
 
 def get_db():
@@ -16,6 +29,8 @@ def get_db():
         g.db = sqlite3.connect(current_app.config["DATABASE"])
         g.db.row_factory = sqlite3.Row          # filas como diccionarios: fila["nombre"]
         g.db.execute("PRAGMA foreign_keys = ON")  # SQLite no valida llaves foráneas sin esto
+        # Permite usar normalizar(columna) dentro del SQL (búsqueda R02)
+        g.db.create_function("normalizar", 1, normalizar, deterministic=True)
     return g.db
 
 
