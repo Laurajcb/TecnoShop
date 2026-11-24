@@ -1,0 +1,9 @@
+<input
+  type="search"
+  class="buscador"
+  placeholder="Buscar por nombre…"
+  aria-label="Buscar artículos por nombre"
+  autocomplete="off"
+  [value]="valor()"
+  (input)="alEscribir($any($event.target).value)"
+/>

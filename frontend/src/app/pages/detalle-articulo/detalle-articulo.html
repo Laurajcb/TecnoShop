@@ -1,0 +1,63 @@
+@let e = estado();
+<section class="detalle" [attr.aria-busy]="e.cargando">
+  <button type="button" class="cerrar" (click)="cerrar()" aria-label="Cerrar y volver al catálogo">
+    ✕ Cerrar
+  </button>
+
+  @if (e.cargando) {
+    <p class="aviso" role="status">Cargando artículo…</p>
+  } @else if (e.error === 'no-encontrado') {
+    <div class="aviso" role="alert">
+      <p>El artículo que buscas no existe.</p>
+      <a class="enlace" routerLink="/">Volver al catálogo</a>
+    </div>
+  } @else if (e.error) {
+    <p class="aviso error" role="alert">
+      No se pudo cargar el artículo. Verifica que la API esté encendida e intenta de nuevo.
+    </p>
+  } @else if (e.articulo; as a) {
+    <article class="ficha">
+      <div class="imagen">
+        @if (imagenFallo()) {
+          <span class="sin-imagen">Imagen no disponible</span>
+        } @else {
+          <img
+            [src]="a.imagen_url"
+            [alt]="a.nombre"
+            width="480"
+            height="360"
+            (error)="imagenFallo.set(true)"
+          />
+        }
+      </div>
+
+      <div class="info">
+        <p class="meta">{{ a.categoria }} · {{ a.marca }}</p>
+        <h1 class="nombre">{{ a.nombre }}</h1>
+        <p class="precio">{{ a.precio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+
+        @if (a.agotado) {
+          <p class="stock agotado">Agotado</p>
+        } @else {
+          <p class="stock">Stock disponible: {{ a.stock }}</p>
+        }
+
+        <p class="descripcion">{{ a.descripcion }}</p>
+
+        @if (a.caracteristicas.length) {
+          <h2 class="subtitulo">Características</h2>
+          <dl class="caracteristicas">
+            @for (c of a.caracteristicas; track c.nombre) {
+              <div class="fila">
+                <dt>{{ c.nombre }}</dt>
+                <dd>{{ c.valor }}</dd>
+              </div>
+            }
+          </dl>
+        }
+
+        <!-- T47 · R05: selector de cantidad y botón "Agregar al carrito" -->
+      </div>
+    </article>
+  }
+</section>

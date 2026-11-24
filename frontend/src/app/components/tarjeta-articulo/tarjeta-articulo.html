@@ -1,0 +1,31 @@
+@let a = articulo();
+<article class="tarjeta">
+  <a
+    class="imagen"
+    [routerLink]="['/articulo', a.id]"
+    [attr.aria-label]="'Ver detalle de ' + a.nombre"
+  >
+    @if (imagenFallo()) {
+      <span class="sin-imagen">Imagen no disponible</span>
+    } @else {
+      <img
+        [src]="a.imagen_url"
+        [alt]="a.nombre"
+        loading="lazy"
+        width="240"
+        height="180"
+        (error)="imagenFallo.set(true)"
+      />
+    }
+  </a>
+  <p class="meta">{{ a.categoria }} · {{ a.marca }}</p>
+  <h2 class="nombre">{{ a.nombre }}</h2>
+  <p class="precio">{{ a.precio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+  @if (a.agotado) {
+    <p class="stock agotado">Agotado</p>
+    <button type="button" class="boton" disabled>Agotado</button>
+  } @else {
+    <p class="stock">Stock: {{ a.stock }}</p>
+    <a class="boton" [routerLink]="['/articulo', a.id]">Ver detalle</a>
+  }
+</article>

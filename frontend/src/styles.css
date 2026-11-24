@@ -1,0 +1,44 @@
+/* Colores neutros provisionales: la paleta final se vota en el equipo (diseño.md §9) y se aplica en T49. */
+:root {
+  --fondo: #ffffff;
+  --fondo-suave: #f2f2f2;
+  --texto: #1f1f1f;
+  --texto-suave: #5c5c5c;
+  --borde: #d0d0d0;
+  --primario: #444444;
+  --sobre-primario: #ffffff;
+  --deshabilitado: #dddddd;
+  --acento: #1a66d9;
+  --error: #b3261e;
+  --exito: #1e7a34;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #1b1b1b;
+    --fondo-suave: #2a2a2a;
+    --texto: #ececec;
+    --texto-suave: #b0b0b0;
+    --borde: #444444;
+    --primario: #e0e0e0;
+    --sobre-primario: #1b1b1b;
+    --deshabilitado: #3a3a3a;
+    --acento: #7fb0ff;
+    --error: #ff8a80;
+    --exito: #7ddc94;
+    color-scheme: dark;
+  }
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+}

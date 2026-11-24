@@ -1,0 +1,19 @@
+<header class="encabezado">
+  <a routerLink="/" class="marca">TecnoShop</a>
+  <app-buscador class="buscador" [valor]="busqueda()" (buscar)="buscar($event)" />
+  <nav aria-label="Principal">
+    @if (sesion.usuario(); as usuario) {
+      <span class="saludo">Hola, {{ usuario.nombre }}</span>
+      <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
+      <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+    } @else {
+      <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
+      <a routerLink="/iniciar-sesion" routerLinkActive="activo">Iniciar sesión</a>
+      <a routerLink="/registro" routerLinkActive="activo">Registrarse</a>
+    }
+  </nav>
+</header>
+
+<main class="contenido">
+  <router-outlet />
+</main>

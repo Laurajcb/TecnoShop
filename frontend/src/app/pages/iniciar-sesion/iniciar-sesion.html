@@ -1,0 +1,46 @@
+<section class="formulario">
+  <h1>Iniciar sesión</h1>
+
+  @if (volver()) {
+    <p class="nota">Inicia sesión para continuar.</p>
+  }
+
+  <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+    <label for="correo">Correo</label>
+    <input
+      id="correo"
+      type="email"
+      formControlName="correo"
+      autocomplete="email"
+      spellcheck="false"
+      [attr.aria-invalid]="invalido('correo')"
+      aria-describedby="error-correo"
+    />
+    @if (invalido('correo')) {
+      <p id="error-correo" class="error-campo">Escribe un correo válido, como nombre@correo.com.</p>
+    }
+
+    <label for="contrasena">Contraseña</label>
+    <input
+      id="contrasena"
+      type="password"
+      formControlName="contrasena"
+      autocomplete="current-password"
+      [attr.aria-invalid]="invalido('contrasena')"
+      aria-describedby="error-contrasena"
+    />
+    @if (invalido('contrasena')) {
+      <p id="error-contrasena" class="error-campo">Escribe tu contraseña.</p>
+    }
+
+    @if (error(); as mensaje) {
+      <p class="error" role="alert">{{ mensaje }}</p>
+    }
+
+    <button type="submit" class="boton" [disabled]="enviando()">
+      {{ enviando() ? 'Ingresando…' : 'Iniciar sesión' }}
+    </button>
+  </form>
+
+  <p class="alterno">¿No tienes cuenta? <a routerLink="/registro">Regístrate</a></p>
+</section>
