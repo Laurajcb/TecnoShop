@@ -1,0 +1,143 @@
+.detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cerrar {
+  align-self: flex-end;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--fondo);
+}
+
+@media (max-width: 720px) {
+  .ficha {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 1rem;
+  }
+}
+
+.imagen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  background: var(--fondo-suave);
+  overflow: hidden;
+}
+
+.imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sin-imagen {
+  color: var(--texto-suave);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meta,
+.stock {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.stock.agotado {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.nombre {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.25;
+}
+
+.precio {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.descripcion {
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+.subtitulo {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+}
+
+.caracteristicas {
+  margin: 0;
+}
+
+.fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.fila dt {
+  color: var(--texto-suave);
+}
+
+.fila dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.aviso {
+  padding: 2rem 0;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.aviso p {
+  margin: 0 0 0.75rem;
+}
+
+.aviso.error {
+  color: var(--error);
+}
+
+.enlace {
+  color: var(--acento);
+}
+
+.cerrar:focus-visible,
+.enlace:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}

@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.buscador {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+.buscador:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
