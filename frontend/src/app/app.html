@@ -2,9 +2,15 @@
   <a routerLink="/" class="marca">TecnoShop</a>
   <app-buscador class="buscador" [valor]="busqueda()" (buscar)="buscar($event)" />
   <nav aria-label="Principal">
-    <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
-    <a routerLink="/iniciar-sesion" routerLinkActive="activo">Iniciar sesión</a>
-    <a routerLink="/registro" routerLinkActive="activo">Registrarse</a>
+    @if (sesion.usuario(); as usuario) {
+      <span class="saludo">Hola, {{ usuario.nombre }}</span>
+      <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
+      <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+    } @else {
+      <a routerLink="/carrito" routerLinkActive="activo">Carrito</a>
+      <a routerLink="/iniciar-sesion" routerLinkActive="activo">Iniciar sesión</a>
+      <a routerLink="/registro" routerLinkActive="activo">Registrarse</a>
+    }
   </nav>
 </header>
 

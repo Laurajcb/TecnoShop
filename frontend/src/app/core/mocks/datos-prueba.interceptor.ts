@@ -1,16 +1,9 @@
-import {
-  HttpErrorResponse,
-  HttpEvent,
-  HttpInterceptorFn,
-  HttpParams,
-  HttpResponse,
-} from '@angular/common/http';
-import { Observable, delay, mergeMap, of, throwError, timer } from 'rxjs';
+import { HttpInterceptorFn, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { ArticuloApi, ArticuloDetalle, ArticuloDetalleApi } from '../models/articulo';
 import { ARTICULOS_PRUEBA } from './articulos-prueba';
-
-const LATENCIA_MS = 200;
+import { manejarAuthPrueba } from './auth-prueba';
+import { responder } from './respuesta-prueba';
 
 /**
  * Simula los endpoints de la API con la forma exacta de docs/api.md (T20), para trabajar
@@ -38,7 +31,7 @@ export const datosPruebaInterceptor: HttpInterceptorFn = (req, next) => {
         });
   }
 
-  return next(req);
+  return manejarAuthPrueba(req, ruta) ?? next(req);
 };
 
 /** Misma lógica que GET /api/articulos (R02, R03): sin mayúsculas ni tildes. */
@@ -87,13 +80,4 @@ function aDetalleApi(a: ArticuloDetalle): ArticuloDetalleApi {
 
 function numero(valor: string | null): number | undefined {
   return valor === null || valor === '' ? undefined : Number(valor);
-}
-
-export function responder(status: number, cuerpo: unknown): Observable<HttpEvent<unknown>> {
-  if (status >= 400) {
-    return timer(LATENCIA_MS).pipe(
-      mergeMap(() => throwError(() => new HttpErrorResponse({ status, error: cuerpo }))),
-    );
-  }
-  return of(new HttpResponse({ status, body: cuerpo })).pipe(delay(LATENCIA_MS));
 }

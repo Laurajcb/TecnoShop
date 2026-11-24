@@ -1,7 +1,7 @@
-// Configuración para `ng build` (producción). El proyecto se ejecuta localmente,
-// así que la API de Flask también corre en este equipo.
+// Configuración para `ng build` (producción). La app compilada debe servirse en el mismo
+// origen que la API (Flask o un proxy que reenvíe /api), por la protección CSRF de docs/api.md §2.
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5000/api',
+  apiUrl: '/api',
   usarDatosDePrueba: false,
 };

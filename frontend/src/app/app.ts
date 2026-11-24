@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Buscador } from './components/buscador/buscador';
+import { SesionService } from './core/services/sesion';
 
 @Component({
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Buscador],
@@ -12,6 +13,7 @@ import { Buscador } from './components/buscador/buscador';
 })
 export class App {
   private readonly router = inject(Router);
+  protected readonly sesion = inject(SesionService);
 
   /** Texto buscado según la URL actual, para que la caja lo muestre al recargar o volver atrás. */
   protected readonly busqueda = toSignal(
@@ -28,5 +30,10 @@ export class App {
       queryParams: { q: texto || null },
       replaceUrl: this.router.url.split('?')[0] === '/',
     });
+  }
+
+  /** Cierra la sesión y vuelve al catálogo (el carrito exige sesión). */
+  protected cerrarSesion(): void {
+    this.sesion.cerrarSesion().subscribe(() => void this.router.navigateByUrl('/'));
   }
 }
