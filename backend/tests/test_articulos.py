@@ -46,6 +46,39 @@ def test_busqueda_por_parte_del_nombre(client):
     assert nombres(client.get("/api/articulos?q=flip")) == ["Parlante JBL Flip 6"]
 
 
+def test_busqueda_por_categoria_devuelve_todos_sus_articulos(client):
+    assert set(nombres(client.get("/api/articulos?q=Celulares"))) == {
+        "Galaxy A55",
+        "Galaxy S24",
+    }
+
+
+def test_busqueda_por_categoria_ignora_tildes(client):
+    ruta_bd = client.application.config["DATABASE"]
+    with sqlite3.connect(ruta_bd) as conexion:
+        conexion.execute(
+            """INSERT INTO articulos
+               (nombre, descripcion, precio, stock, imagen_url, categoria_id, marca_id)
+               VALUES (?, ?, ?, ?, ?,
+                   (SELECT id FROM categorias WHERE nombre = ?),
+                   (SELECT id FROM marcas WHERE nombre = ?))""",
+            (
+                "Auricular Demo",
+                "Artículo de prueba para buscar por categoría.",
+                1000,
+                1,
+                "img/auricular-demo.jpg",
+                "Audífonos",
+                "Sony",
+            ),
+        )
+
+    assert set(nombres(client.get("/api/articulos?q=audifonos"))) == {
+        "Audífonos Sony WH-CH520",
+        "Auricular Demo",
+    }
+
+
 def test_busqueda_sin_importar_tildes(client):
     assert nombres(client.get("/api/articulos?q=audifonos")) == ["Audífonos Sony WH-CH520"]
     assert nombres(client.get("/api/articulos?q=AUDÍFONOS")) == ["Audífonos Sony WH-CH520"]

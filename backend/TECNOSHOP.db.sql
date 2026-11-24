@@ -1,4 +1,8 @@
+-- Catálogo oficial: se puede cargar después de `flask --app app init-db` y repetir sin duplicar datos.
+PRAGMA foreign_keys = ON;
 BEGIN TRANSACTION;
+-- El dump inserta artículos antes de las marcas; valida las relaciones al COMMIT.
+PRAGMA defer_foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS articulos (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre          TEXT    NOT NULL CHECK (length(trim(nombre)) > 0),
@@ -41,7 +45,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     contrasena_hash  TEXT    NOT NULL,          -- nunca la contraseña en texto plano
     fecha_registro   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
-INSERT INTO "articulos" ("id","nombre","descripcion","precio","stock","imagen_url","categoria_id","marca_id","fecha_creacion") VALUES (1,'Samsung Galaxy A17 128 GB','Celular Android con pantalla de 6.7 pulgadas, cámara principal de 50 MP, 128 GB de almacenamiento y 4 GB de RAM.',479900,12,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiUg58EZmARdBaLgM9weprQaNXyjv5ShogIier6uqKpA&s=10',1,1,'2026-11-18 16:29:37'),
+INSERT OR IGNORE INTO "articulos" ("id","nombre","descripcion","precio","stock","imagen_url","categoria_id","marca_id","fecha_creacion") VALUES (1,'Samsung Galaxy A17 128 GB','Celular Android con pantalla de 6.7 pulgadas, cámara principal de 50 MP, 128 GB de almacenamiento y 4 GB de RAM.',479900,12,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiUg58EZmARdBaLgM9weprQaNXyjv5ShogIier6uqKpA&s=10',1,1,'2026-11-18 16:29:37'),
  (2,'Xiaomi Redmi 15 128 GB','Smartphone con 128 GB de almacenamiento, 6 GB de RAM y cámara principal de 50 MP. Ideal para uso diario.',579900,10,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgf_pxAexfeiQ84PiRs6mjQPEAhZFndESPIqVFtWvZPQ&s=10',1,2,'2026-11-18 16:29:37'),
  (3,'Motorola Moto G06 128 GB','Teléfono inteligente 4G con 128 GB de almacenamiento, 4 GB de RAM y sistema de doble SIM.',419990,8,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwrN7ewj3ZHr-ibsO9_NdL05N4dLXjI3lNqBPlpcSNfw&s=10',1,3,'2026-11-18 16:29:37'),
  (4,'Samsung Galaxy A07','Celular de entrada para comunicación, navegación y aplicaciones cotidianas. Versión de doble SIM.',399800,15,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCl4cW8t7WB0fvDdIBDcdXMJsDL3YEL9a1VlQzG6GvkQ&s=10',1,1,'2026-11-18 16:29:37'),
@@ -61,7 +65,7 @@ INSERT INTO "articulos" ("id","nombre","descripcion","precio","stock","imagen_ur
  (18,'Sony ULT Field 1','Parlante Bluetooth portátil de la línea ULT, diseñado para uso exterior y reproducción inalámbrica.',289900,6,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnkwevQtPf3ncDAzNoILNr4BHoBXU7X7Od0okc4gx2ZQ&s=10',4,10,'2026-11-18 16:29:37'),
  (19,'JBL Flip 7','Parlante Bluetooth portátil de 35 W, diseñado para reproducir música en interiores y exteriores.',449900,5,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6g-UocSuPlKQNrGqG6svwOd9HfOcV0qwZ-SkmNISzuA&s',4,9,'2026-11-18 16:29:37'),
  (20,'Xiaomi Sound Outdoor','Parlante Bluetooth portátil para reproducción inalámbrica de música, con diseño compacto para exteriores.',155000,10,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTUTKBZHLYHNMaCMoGaFHkamKAnuJ31nHs_pGTXj5U5w&s',4,2,'2026-11-18 16:29:37');
-INSERT INTO "caracteristicas" ("id","articulo_id","nombre","valor") VALUES (1,1,'Almacenamiento','128 GB'),
+INSERT OR IGNORE INTO "caracteristicas" ("id","articulo_id","nombre","valor") VALUES (1,1,'Almacenamiento','128 GB'),
  (2,1,'Memoria RAM','4 GB'),
  (3,1,'Cámara principal','50 MP'),
  (4,2,'Almacenamiento','128 GB'),
@@ -121,11 +125,11 @@ INSERT INTO "caracteristicas" ("id","articulo_id","nombre","valor") VALUES (1,1,
  (58,20,'Conectividad','Bluetooth'),
  (59,20,'Tipo','Portátil'),
  (60,20,'Uso','Interiores y exteriores');
-INSERT INTO "categorias" ("id","nombre") VALUES (1,'Celulares'),
+INSERT OR IGNORE INTO "categorias" ("id","nombre") VALUES (1,'Celulares'),
  (2,'Computadores'),
  (3,'Audífonos'),
  (4,'Parlantes');
-INSERT INTO "marcas" ("id","nombre") VALUES (1,'Samsung'),
+INSERT OR IGNORE INTO "marcas" ("id","nombre") VALUES (1,'Samsung'),
  (2,'Xiaomi'),
  (3,'Motorola'),
  (4,'Apple'),
@@ -137,7 +141,7 @@ INSERT INTO "marcas" ("id","nombre") VALUES (1,'Samsung'),
  (10,'Sony'),
  (11,'Logitech'),
  (12,'Xiaomi Audio');
-CREATE VIEW v_articulos AS
+CREATE VIEW IF NOT EXISTS v_articulos AS
 SELECT a.id, a.nombre, a.descripcion, a.precio, a.stock, a.imagen_url,
        c.id AS categoria_id, c.nombre AS categoria,
        m.id AS marca_id,     m.nombre AS marca,
@@ -145,31 +149,31 @@ SELECT a.id, a.nombre, a.descripcion, a.precio, a.stock, a.imagen_url,
 FROM articulos a
 JOIN categorias c ON c.id = a.categoria_id
 JOIN marcas     m ON m.id = a.marca_id;
-CREATE VIEW v_carrito_detalle AS
+CREATE VIEW IF NOT EXISTS v_carrito_detalle AS
 SELECT ci.usuario_id, ci.articulo_id, a.nombre, a.imagen_url,
        ci.cantidad, a.precio AS precio_unitario,
        ci.cantidad * a.precio AS subtotal, a.stock
 FROM carrito_items ci
 JOIN articulos a ON a.id = ci.articulo_id;
-CREATE VIEW v_carrito_resumen AS
+CREATE VIEW IF NOT EXISTS v_carrito_resumen AS
 SELECT usuario_id,
        SUM(cantidad)            AS total_articulos,
        SUM(cantidad * precio_unitario) AS total_pagar
 FROM v_carrito_detalle
 GROUP BY usuario_id;
-CREATE INDEX idx_articulos_categoria ON articulos(categoria_id);
-CREATE INDEX idx_articulos_marca     ON articulos(marca_id);
-CREATE INDEX idx_articulos_nombre    ON articulos(nombre COLLATE NOCASE);
-CREATE INDEX idx_articulos_precio    ON articulos(precio);
-CREATE INDEX idx_caracteristicas_articulo ON caracteristicas(articulo_id);
-CREATE INDEX idx_carrito_usuario ON carrito_items(usuario_id);
-CREATE TRIGGER trg_carrito_stock_insert
+CREATE INDEX IF NOT EXISTS idx_articulos_categoria ON articulos(categoria_id);
+CREATE INDEX IF NOT EXISTS idx_articulos_marca     ON articulos(marca_id);
+CREATE INDEX IF NOT EXISTS idx_articulos_nombre    ON articulos(nombre COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_articulos_precio    ON articulos(precio);
+CREATE INDEX IF NOT EXISTS idx_caracteristicas_articulo ON caracteristicas(articulo_id);
+CREATE INDEX IF NOT EXISTS idx_carrito_usuario ON carrito_items(usuario_id);
+CREATE TRIGGER IF NOT EXISTS trg_carrito_stock_insert
 BEFORE INSERT ON carrito_items
 WHEN NEW.cantidad > (SELECT stock FROM articulos WHERE id = NEW.articulo_id)
 BEGIN
     SELECT RAISE(ABORT, 'STOCK_INSUFICIENTE');
 END;
-CREATE TRIGGER trg_carrito_stock_update
+CREATE TRIGGER IF NOT EXISTS trg_carrito_stock_update
 BEFORE UPDATE OF cantidad ON carrito_items
 WHEN NEW.cantidad > (SELECT stock FROM articulos WHERE id = NEW.articulo_id)
 BEGIN

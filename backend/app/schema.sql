@@ -147,5 +147,5 @@ GROUP BY usuario_id;
 -- DATOS BASE: las 4 categorías del proyecto.
 -- Marcas, artículos y características los carga el seed (T26 / T29, MH).
 -- ---------------------------------------------------------------------
-INSERT INTO categorias (nombre) VALUES
+INSERT OR IGNORE INTO categorias (nombre) VALUES
     ('Celulares'), ('Computadores'), ('Audífonos'), ('Parlantes');

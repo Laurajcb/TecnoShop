@@ -1,6 +1,6 @@
 """Catálogo de artículos – T30 (R02, R04, R07).
 
-GET /api/articulos            lista y búsqueda por nombre (?q=)
+GET /api/articulos            lista y búsqueda por nombre o categoría (?q=)
 GET /api/articulos/<id>       detalle para la vista ampliada
 
 Los filtros de marca, categoría y precio (R03) se agregan en la T42:
@@ -29,8 +29,11 @@ def _filtros(args):
 
     q = args.get("q", "").strip()
     if q:
-        condiciones.append("normalizar(nombre) LIKE ?")
-        parametros.append(f"%{normalizar(q)}%")
+        condiciones.append(
+            "(normalizar(nombre) LIKE ? OR normalizar(categoria) LIKE ?)"
+        )
+        termino = f"%{normalizar(q)}%"
+        parametros.extend((termino, termino))
 
     # T42: aquí se agregan marca_id, categoria_id, precio_min y precio_max
 
